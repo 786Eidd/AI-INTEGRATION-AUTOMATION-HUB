@@ -1,0 +1,198 @@
+[
+  {
+    "id": 1,
+    "payload": {"source": "contact_form", "email": "john@acme.example", "raw_text": "Hi, I am John from Acme Corp, we have 200 employees and need a demo ASAP, this is urgent!"},
+    "expected_action": "synced_hot",
+    "expected_company": "Acme Corp",
+    "note": "Clean hot lead: 'from Acme Corp' + employee count + urgent keywords."
+  },
+  {
+    "id": 2,
+    "payload": {"source": "webhook", "email": "ops@meridianhealth.example", "raw_text": "This is critical — we need this integrated immediately for a large rollout across our 600 employees at Meridian Health."},
+    "expected_action": "synced_hot",
+    "expected_company": "Meridian Health",
+    "note": "Clean hot lead: 'at Meridian Health' after a trailing period, large headcount, critical/immediately."
+  },
+  {
+    "id": 3,
+    "payload": {"source": "chat_widget", "email": "team@vantageretail.example", "raw_text": "URGENT: need integration live by end of day, we're Vantage Retail with roughly 75 employees."},
+    "expected_action": "synced_hot",
+    "expected_company": "Vantage Retail",
+    "note": "Routing correct (medium tier + urgent), but company extraction is expected to miss: 'with' is followed by 'roughly' (lowercase), so the regex finds no capitalized company name after it."
+  },
+  {
+    "id": 4,
+    "payload": {"source": "contact_form", "email": "contact@northbridge.example", "raw_text": "ASAP please — Northbridge Logistics here, we've got about 1000 employees waiting on this rollout."},
+    "expected_action": "synced_hot",
+    "expected_company": "Northbridge Logistics",
+    "note": "Routing correct (large tier + ASAP), but company extraction is expected to miss: no 'from/at/with' precedes the company name."
+  },
+  {
+    "id": 5,
+    "payload": {"source": "webhook", "email": "it@solstice.example", "raw_text": "Need this live right away, our team at Solstice Analytics has 220 people on staff and can't wait."},
+    "expected_action": "synced_hot",
+    "expected_company": "Solstice Analytics",
+    "note": "Clean hot lead: 'at Solstice Analytics', '220 people', 'right away' urgent phrase."
+  },
+  {
+    "id": 6,
+    "payload": {"source": "contact_form", "email": "plant.mgr@ferrow.example", "raw_text": "This is an emergency, please help today — we are Ferrow Manufacturing, 5000 employees across three plants."},
+    "expected_action": "synced_hot",
+    "expected_company": "Ferrow Manufacturing",
+    "note": "Routing correct (large tier + emergency/today), but company extraction is expected to miss: 'we are Company Name' phrasing isn't covered by the from/at/with regex."
+  },
+  {
+    "id": 7,
+    "payload": {"source": "contact_form", "email": "founder@soloshop.example", "raw_text": "We need this ASAP, I'm a solo founder just getting started, no team yet."},
+    "expected_action": "flagged_for_review",
+    "expected_company": null,
+    "note": "Urgent claim with no extractable headcount -> unknown tier -> flagged for human review, not auto-synced."
+  },
+  {
+    "id": 8,
+    "payload": {"source": "chat_widget", "email": "owner@smallshop.example", "raw_text": "This is urgent, please respond immediately! I run a small shop with 8 employees."},
+    "expected_action": "flagged_for_review",
+    "expected_company": null,
+    "note": "Urgent + small tier (8 employees) -> flagged for review, not auto-synced as hot."
+  },
+  {
+    "id": 9,
+    "payload": {"source": "webhook", "email": "help@mystery.example", "raw_text": "Critical issue, need help today — not sure how big we are, maybe 20-30 people?"},
+    "expected_action": "flagged_for_review",
+    "expected_company": null,
+    "note": "Employee-count regex matches the second number in a range ('30 people'), giving small tier -> review, since the first number ('20') isn't immediately followed by the keyword."
+  },
+  {
+    "id": 10,
+    "payload": {"source": "contact_form", "email": "pre@startup.example", "raw_text": "immediately need a quote, we're still pre-revenue with just 3 people on the team"},
+    "expected_action": "flagged_for_review",
+    "expected_company": null,
+    "note": "Urgent + small tier (3 people) -> flagged for review."
+  },
+  {
+    "id": 11,
+    "payload": {"source": "webhook", "email": "rush@unknown.example", "raw_text": "This can't wait, extremely urgent — we're a small team, not sure exact headcount."},
+    "expected_action": "flagged_for_review",
+    "expected_company": null,
+    "note": "Urgent + no extractable headcount -> unknown tier -> flagged for review."
+  },
+  {
+    "id": 12,
+    "payload": {"source": "contact_form", "email": "info@brightpath.example", "raw_text": "Hi, I'm interested in learning more about your platform. I'm from Bright Path Consulting, we have 60 employees."},
+    "expected_action": "synced_standard",
+    "expected_company": "Bright Path Consulting",
+    "note": "Medium tier but normal urgency -> standard sync, not hot. Demonstrates urgency is required for the hot path, not size alone."
+  },
+  {
+    "id": 13,
+    "payload": {"source": "chat_widget", "email": "explore@wanderlust.example", "raw_text": "No rush at all, just exploring options for our team of 15 at Wanderlust Travel."},
+    "expected_action": "synced_standard",
+    "expected_company": "Wanderlust Travel",
+    "note": "Low urgency, company extracted correctly; employee count not extracted ('team of 15 at' doesn't match the count pattern) but tier doesn't affect routing when urgency isn't high."
+  },
+  {
+    "id": 14,
+    "payload": {"source": "webhook", "email": "curious@ridgeline.example", "raw_text": "Just curious what this costs, we're a 300 person company called Ridgeline Freight."},
+    "expected_action": "synced_standard",
+    "expected_company": "Ridgeline Freight",
+    "note": "Low urgency -> standard sync regardless. Company extraction expected to miss ('called Company Name' isn't covered); employee count also missed (singular 'person', not 'people')."
+  },
+  {
+    "id": 15,
+    "payload": {"source": "contact_form", "email": "walkthrough@falconmedia.example", "raw_text": "Would like a walkthrough sometime, we're with Falcon Media, about 90 employees."},
+    "expected_action": "synced_standard",
+    "expected_company": "Falcon Media",
+    "note": "Clean standard case: 'with Falcon Media' extracted correctly, normal urgency."
+  },
+  {
+    "id": 16,
+    "payload": {"source": "webhook", "email": "pricing@harborgoods.example", "raw_text": "Checking in about pricing tiers for a 12-person team at Harbor Goods."},
+    "expected_action": "synced_standard",
+    "expected_company": "Harbor Goods",
+    "note": "Company extracted correctly; employee count missed (hyphenated '12-person' not covered), but doesn't affect routing at normal urgency."
+  },
+  {
+    "id": 17,
+    "payload": {"source": "contact_form", "email": "dev@devshop.example", "raw_text": "General question about your API docs, not urgent at all."},
+    "expected_action": "synced_standard",
+    "expected_company": null,
+    "note": "KNOWN MISS: urgency keyword matching is substring-based and negation-blind, so 'not urgent at all' still contains 'urgent' and is classified high -> the actual system is expected to flag this for review instead of routing it as standard."
+  },
+  {
+    "id": 18,
+    "payload": {"source": "webhook", "email": "followup@copperline.example", "raw_text": "Loved your demo, following up on next steps. We're at 45 employees now at Copperline Studio."},
+    "expected_action": "synced_standard",
+    "expected_company": "Copperline Studio",
+    "note": "Two 'at' occurrences in the text; regex correctly skips 'at 45' (digit, not capitalized) and matches 'at Copperline Studio'. Normal urgency -> standard sync regardless of the small tier."
+  },
+  {
+    "id": 19,
+    "payload": {"source": "contact_form", "email": "winner@spammy.example", "raw_text": "CONGRATULATIONS YOU have won! click here to claim your free money now!!!"},
+    "expected_action": "rejected_spam",
+    "expected_company": null,
+    "note": "Multiple spam keywords present."
+  },
+  {
+    "id": 20,
+    "payload": {"source": "contact_form", "email": "deals@spamco.example", "raw_text": "buy now and get a huge discount, limited time offer, act now!!!"},
+    "expected_action": "rejected_spam",
+    "expected_company": null,
+    "note": "Spam keywords 'buy now', 'limited time offer', 'act now'."
+  },
+  {
+    "id": 21,
+    "payload": {"source": "chat_widget", "email": "short@x.example", "raw_text": "hi"},
+    "expected_action": "rejected_spam",
+    "expected_company": null,
+    "note": "Text shorter than 8 characters is treated as spam/low-signal."
+  },
+  {
+    "id": 22,
+    "payload": {"source": "contact_form", "email": "not-an-email", "raw_text": "Hi I need help with your product ASAP"},
+    "expected_action": "rejected_invalid",
+    "expected_company": null,
+    "note": "Malformed email address -> rejected before classification even runs."
+  },
+  {
+    "id": 23,
+    "payload": {"source": "api", "email": "empty@example.com", "raw_text": "   "},
+    "expected_action": "rejected_invalid",
+    "expected_company": null,
+    "note": "Empty/whitespace-only message body -> rejected as invalid."
+  },
+  {
+    "id": 24,
+    "payload": {"source": "contact_form", "email": "dup@falconmedia.example", "raw_text": "Hi, I'm from Falcon Media, need pricing info."},
+    "expected_action": "synced_standard",
+    "expected_company": "Falcon Media",
+    "note": "Idempotency check part 1 of 2: first submission from this email, normal urgency, no headcount stated -> standard sync."
+  },
+  {
+    "id": 25,
+    "payload": {"source": "contact_form", "email": "dup@falconmedia.example", "raw_text": "Actually this is urgent now, need pricing ASAP, we have 120 employees at Falcon Media."},
+    "expected_action": "synced_hot",
+    "expected_company": "Falcon Media",
+    "note": "Idempotency check part 2 of 2: same email as #24, now urgent + medium headcount -> hot. The lead row for this email should be UPDATED in place (still one row), not duplicated, and the CRM contact upsert should report created=false on this second call."
+  },
+  {
+    "id": 26,
+    "payload": {"source": "webhook", "email": "urgent@crestwood.example", "raw_text": "Time-sensitive — need this deployed today, we run Crestwood Analytics with 40 employees."},
+    "expected_action": "flagged_for_review",
+    "expected_company": "Crestwood Analytics",
+    "note": "Routing correct (urgent 'today' + small tier -> review). Company extraction is expected to miss: 'run Company Name' isn't covered, and 'with 40' fails since 'with' is followed by a digit, not a capitalized word."
+  },
+  {
+    "id": 27,
+    "payload": {"source": "contact_form", "email": "renewal@example.com", "raw_text": "Hey there, hope you're doing well! Wanted to check in about renewal options, no specific timeline."},
+    "expected_action": "synced_standard",
+    "expected_company": null,
+    "note": "No urgency keywords, no company mentioned, no spam -> plain standard sync."
+  },
+  {
+    "id": 28,
+    "payload": {"source": "chat_widget", "email": "promo@offers.example", "raw_text": "This looks like an amazing opportunity!!! Act now to secure your spot, limited time offer only!"},
+    "expected_action": "rejected_spam",
+    "expected_company": null,
+    "note": "Spam keywords 'act now', 'limited time offer'."
+  }
+]
